@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button, Progress, Alert } from 'reactstrap';
+import io from 'socket.io-client';
 
 import './SeatChooser.scss';
 
@@ -8,14 +9,9 @@ class SeatChooser extends React.Component {
   componentDidMount() {
     const { loadSeats } = this.props;
     loadSeats();
+    this.socket = io(process.env.PORT || 'localhost:8000');
 
-    this.interval = setInterval(() => {
-      loadSeats();
-    }, 120000);
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.interval);
+    this.socket.on('seatsUpdated', (seats) => loadSeats(seats));
   }
 
   isTaken = (seatId) => {
@@ -34,13 +30,14 @@ class SeatChooser extends React.Component {
   }
 
   render() {
-
     const { prepareSeat } = this;
-    const { requests } = this.props;
+    const { requests, seats, chosenDay } = this.props;
+    const freeSeats = 50 - (seats.filter(seat => seat.day === chosenDay)).length;
 
     return (
       <div>
         <h3>Pick a seat</h3>
+        <small className="form-text text-muted ml-2">Free seats: {freeSeats}/50</small>
         <small id="pickHelp" className="form-text text-muted ml-2"><Button color="secondary" /> – seat is already taken</small>
         <small id="pickHelpTwo" className="form-text text-muted ml-2 mb-4"><Button outline color="primary" /> – it's empty</small>
         { (requests['LOAD_SEATS'] && requests['LOAD_SEATS'].success) && <div className="seats">{[...Array(50)].map((x, i) => prepareSeat(i+1) )}</div>}
