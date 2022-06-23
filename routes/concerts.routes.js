@@ -1,52 +1,16 @@
 const express = require('express');
-const { v4: uuidv4 } = require('uuid');
-const db = require('../db');
 const router = express.Router();
 
-router.route('/concerts').get((req, res) => {
-  res.json(db.concerts);
-});
+const ConcertController = require('../controllers/concerts.controller');
 
-router.route('/concerts/:id').get((req, res) => {
-  const concert = db.concerts.find((concert) => concert.id == req.params.id);
-  res.json(concert);
-});
+router.get('/concerts', ConcertController.getAll);
 
-router.route('/concerts').post((req, res) => {
-  const newConcert = {
-    id: uuidv4(),
-    performer: req.body.performer,
-    genre: req.body.genre,
-    price: Number(req.body.price),
-    day: Number(req.body.day),
-    image: req.body.image
-  };
+router.get('/concerts/:id', ConcertController.getById);
 
-  db.concerts.push(newConcert);
-  res.json({ message: 'New concert added' });
-});
+router.post('/concerts', ConcertController.post);
 
-router.route('/concerts/:id').put((req, res) => {
-  const concert = db.concerts.find((concert) => concert.id == req.params.id);
-  const index = db.concerts.indexOf(concert);
-  const editedConcert = {
-    ...concert,
-    performer: req.body.performer,
-    genre: req.body.genre,
-    price: Number(req.body.price),
-    day: Number(req.body.day),
-    image: req.body.image
-  };
+router.put('/concerts/:id', ConcertController.put);
 
-  db.concerts[index] = editedConcert;
-  res.json({ message: 'Concert edited' });
-});
-
-router.route('/concerts/:id').delete((req, res) => {
-  const concert = db.concerts.find((concert) => concert.id == req.params.id);
-  const index = db.concerts.indexOf(concert);
-  db.concerts.splice(index, 1);
-  res.json({ message: 'Concert deleted' });
-});
+router.delete('/concerts/:id', ConcertController.delete);
 
 module.exports = router;
